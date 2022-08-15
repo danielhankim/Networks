@@ -29,7 +29,7 @@ void make_CGraph(int **adj, int *deg, int nw_size) {
     int i, j, idx;
     init_1d_int(deg, nw_size, nw_size - 1);
     init_2d_int2(adj, nw_size, nw_size - 1, 0);
-    for (i = 0; i < nw_size; i++) { 
+    for (i = 0; i < nw_size; i++) {
         for (idx = 0, j = 0; j < nw_size; j++) {
             if (i != j) {
                 adj[i][idx] = j;
@@ -64,13 +64,13 @@ void make_ErdosRenyi(int **adj, int *deg, int nw_size, double mean_k) {
             if (ticket == 0) {
                 deg[node1] += 1;
                 deg[node2] += 1;
-                adj[node1] = (int *)realloc(adj[node1], intsz * deg[node1]); 
+                adj[node1] = (int *)realloc(adj[node1], intsz * deg[node1]);
                 adj[node2] = (int *)realloc(adj[node2], intsz * deg[node2]);
                 adj[node1][deg[node1] - 1] = node2;
                 adj[node2][deg[node2] - 1] = node1;
                 n_link += 1;
             }
-        } 
+        }
     }
 }
 
@@ -91,13 +91,13 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
 
     rich = (int *)calloc(0, intsz);
     poor = (int *)calloc(0, intsz);
-    
+
     for (i = 0, sum_prob = 0.; i < nw_size; i++) {
         prob[i] = pow((double)(i+1), -alpha);
         id[i] = i;
         sum_prob += prob[i];
     }
-    
+
     for (i = 0; i < nw_size; i++) {
         prob[i] = prob[i] / sum_prob * (double) nw_size;
     }
@@ -142,12 +142,12 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
             rnd = genrand64_real2();
             tmp = (int) (nw_size * rnd);
             rnd = genrand64_real2();
-            if (prob[tmp] > rnd) {node1 = tmp;} 
+            if (prob[tmp] > rnd) {node1 = tmp;}
             else {node1 = id[tmp];}
             rnd = genrand64_real2();
             tmp = (int) (nw_size * rnd);
             rnd = genrand64_real2();
-            if (prob[tmp] > rnd) {node2 = tmp;} 
+            if (prob[tmp] > rnd) {node2 = tmp;}
             else {node2 = id[tmp];}
 
             if (node1 != node2) {
@@ -160,11 +160,11 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
                 if (ticket == 0) {
                     deg[node1] += 1;
                     deg[node2] += 1;
-                    adj[node1] = (int *)realloc(adj[node1], intsz * deg[node1]); 
+                    adj[node1] = (int *)realloc(adj[node1], intsz * deg[node1]);
                     adj[node2] = (int *)realloc(adj[node2], intsz * deg[node2]);
                     adj[node1][deg[node1] - 1] = node2;
                     adj[node2][deg[node2] - 1] = node1;
-                    n_link += 1; 
+                    n_link += 1;
                 }
 
             }
@@ -175,7 +175,62 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
     free(prob); free(id);
 }
 
-void make_BarabasiAlbert();
+void make_BarabasiAlbert(int **adj, int *deg, int nw_size, int k_mean){
+    int *node_list, n, i, j, k_tot, n_new, count, done, check;
+    double *pref_prob, p_sum, rnd;
+
+    n = k_mean + 1; // # of current nodes
+    n_new = (int) (k_mean / 2); // # of new attachment
+    node_list = (int *)calloc(n_new, sizeof(int)); // list of attaching node for new comer
+    pref_prob = (double *)calloc(n, sizeof(double)); // pref. att. prob.
+
+    make_CGraph(adj, deg, n);
+    init_1d_double(pref_prob, n, 1. / n);
+
+    for (n; n < nw_size; n++) {
+        // reset pref. att. prob.
+
+        for (p_sum = 0., i = 0; i < n; i++) {
+            k_tot = sum_1d_int(deg, n);
+            p_sum += (double) (deg[i] / k_tot);
+            pref_prob[i] = p_sum;
+        }
+        done = 0;
+        while (done != 1) {
+            count = 0;
+            while (count < n_new) {
+                rnd = genrand64_real2();
+                for (i = 0; i < n; i++) {
+                    if (rnd < pref_prob[i]) {
+                        node_list[count] = i;
+                        count += 1;
+                        break;
+                    }
+                }
+            }
+            check = 0;
+            for (i = 0; i < n_new - 1; i++) {
+                for (j = i + 1; j < n_new; j++) {
+                    if (node_list[i] == node_list[j]) {
+                        check = 1;
+                    }
+                }
+            }
+            if (check != 0) {break;}
+
+            deg[n] = n_new;
+            adj[n] = (int *)calloc(n_new, sizeof(int));
+            pref_prob = (double *)realloc(pref_prob, n * sizeof(double));
+            for (i = 0; i < n_new; i++) {
+                deg[node_list[i]] += 1;
+                adj[node_list[i]][deg[node_list[i]] - 1] = n;
+                adj[n][i] = node_list[i];
+            }
+            done = 1;
+        }
+    }
+    free(node_list); free(pref_prob);
+}
 
 void make_WattsStrogatz();
 
