@@ -140,15 +140,17 @@ int extract_lc(int **adj, int *deg, int **new_adj, int *new_deg, int nw_size) {
 // Rewiring method
 //#############################################################################
 /* Rewiring Links preserving degree distribution */
-int LinkRewiring1(int **adj, int *deg, int N) {
+void link_rewiring1(int **adj, int *deg, int N) {
     int *candidate1, *candidate2, *final1, *final2, node1, node2, 
     friend1, friend2, i, j, n_candidate1, n_candidate2;
     double rnd;
 
     /* choose two nodes who will swap their friends */
-    node1 = (int) (genrand64_real2() * N);
+    rnd = genrand64_real2();
+    node1 = (int) (rnd * N);
     while (1) {
-        node2 = (int) (genrand64_real2() * N);
+        rnd = genrand64_real2();
+        node2 = (int) (rnd * N);
         if (node1 != node2) {
             break;
         }
@@ -204,8 +206,10 @@ int LinkRewiring1(int **adj, int *deg, int N) {
     }
     
     /* choose the final friends to swap */
-    friend1 = final1[(int) (genrand64_real2() * n_candidate1)];
-    friend2 = final2[(int) (genrand64_real2() * n_candidate2)];
+    rnd = genrand64_real2();
+    friend1 = final1[(int) (rnd * n_candidate1)];
+    rnd = genrand64_real2();
+    friend2 = final2[(int) (rnd * n_candidate2)];
 
     /* Information Update */
     for (i = 0; i < deg[node1]; i++) {
@@ -237,12 +241,11 @@ int LinkRewiring1(int **adj, int *deg, int N) {
     
     free(candidate1), free(candidate2);
     free(final1), free(final2);
-    return 0;
 }
 
 /* Rewiring Links without preserving degree distribution */
 /* Sometimes, this makes zero-degree nodes */
-int LinkRewiring2(int **adj, int *deg, int N) {
+int link_rewiring2(int **adj, int *deg, int N) {
     int *copy_adj, node1, node2, friend, 
     i, j, k, idx, check, n_trial;
 
@@ -298,7 +301,7 @@ int LinkRewiring2(int **adj, int *deg, int N) {
 
 /* Rewiring Links without preserving degree distribution */
 /* No zero-degree nodes are created here */
-int LinkRewiring3(int **adj, int *deg, int N) {
+int link_rewiring3(int **adj, int *deg, int N) {
     int *copy_adj, node1, node2, friend, 
     i, j, k, idx, check, n_trial;
 
@@ -355,7 +358,7 @@ int LinkRewiring3(int **adj, int *deg, int N) {
     return 0;
 }
 /* LinkRewiring1 + gives swap information */
-int LinkRewiring1Plus(int **adj, int **change, int *deg, int N) {
+int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
     int *candidate1, *candidate2, *final1, *final2, node1, node2, 
     friend1, friend2, i, j, n_candidate1, n_candidate2;
     double rnd;
