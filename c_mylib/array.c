@@ -27,7 +27,7 @@ void init_1d_double(double *ary, int max, double init_val) {
 
 void init_2d_int1(int **ary, int max1, int *max2, int init_val) {
     int i;
-    for (i = 0; i < max1; i++) {        
+    for (i = 0; i < max1; i++) {
         ary[i] = (int *)calloc(max2[i], sizeof(int));
         if (init_val != 0) {
             init_1d_int(ary[i], max2[i], init_val);

@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//#############################################################################
+// Uncategorized
+//#############################################################################
+/* BFS */
+/* DFS */
+
 
 //#############################################################################
 // Burning Algorithm
@@ -16,7 +22,7 @@ void burning(int **adj, int *deg, int *cluster_id, int nw_size) {
     init_1d_int(cluster_id, nw_size, -1);
     for (i = 0; i < nw_size; i++) {node_list[i] = i;}
     remainder = nw_size;
-    
+
     id = 0;
     while (1) {
         rp = 0;
@@ -27,7 +33,7 @@ void burning(int **adj, int *deg, int *cluster_id, int nw_size) {
             end = deg[seed];
             stack = (int *)realloc(stack, intsz * end);
             copy_1d_int1(stack, adj[seed], end);
-            
+
             // assign cluster id
             for (i = 0; i < deg[seed]; i++) {
                 cluster_id[adj[seed][i]] = id;
@@ -56,7 +62,7 @@ void burning(int **adj, int *deg, int *cluster_id, int nw_size) {
         }
         if (remainder == 0) {break;}
         node_list = (int *)realloc(node_list, intsz * remainder);
-        
+
         // make list of remainder nodes
         for (i = 0, j = 0; i < nw_size; i++) {
             if (cluster_id[i] == -1) {
@@ -65,7 +71,7 @@ void burning(int **adj, int *deg, int *cluster_id, int nw_size) {
             }
         }
     }
-    
+
     free(node_list), free(stack);
 }
 
@@ -76,7 +82,7 @@ int extract_lc(int **adj, int *deg, int **new_adj, int *new_deg, int nw_size) {
     intsz = sizeof(int);
     cluster_id = calloc(nw_size, intsz);
     burning(adj, deg, cluster_id, nw_size);
- 
+
     // find id and size of largest cluster
     for (n_cluster = 0, i = 0; i < nw_size; i++) {
         if (cluster_id[i] >=  n_cluster) {
@@ -87,18 +93,18 @@ int extract_lc(int **adj, int *deg, int **new_adj, int *new_deg, int nw_size) {
 
     cluster_size = (int *)calloc(n_cluster, intsz);
     for (i = 0; i < nw_size; i++) {cluster_size[cluster_id[i]] += 1;}
-    
+
     for (lc_size = -1, i = 0; i < n_cluster; i++) {
         if (cluster_size[i] >= lc_size) {
             lc_size = cluster_size[i];
         }
     }
     lc_id = give_idx(cluster_size, n_cluster, lc_size);
-     
+
     printf("nw size: %d ---> %d\n", nw_size, lc_size);
 
     // adjust index label due to burning process
-    table = (int *)calloc(nw_size, intsz); 
+    table = (int *)calloc(nw_size, intsz);
     for (i = 0, count = 0; i < nw_size; i++) {
         if (cluster_id[i] == lc_id) {
             table[i] = i - count;
@@ -111,7 +117,7 @@ int extract_lc(int **adj, int *deg, int **new_adj, int *new_deg, int nw_size) {
     for (i = 0, j = 0; i < nw_size; i++) {
         if (cluster_id[i] == lc_id) {
             new_deg[j] = deg[i];
-            j += 1;            
+            j += 1;
         }
     }
 
@@ -141,7 +147,7 @@ int extract_lc(int **adj, int *deg, int **new_adj, int *new_deg, int nw_size) {
 //#############################################################################
 /* Rewiring Links preserving degree distribution */
 void link_rewiring1(int **adj, int *deg, int N) {
-    int *candidate1, *candidate2, *final1, *final2, node1, node2, 
+    int *candidate1, *candidate2, *final1, *final2, node1, node2,
     friend1, friend2, i, j, n_candidate1, n_candidate2;
     double rnd;
 
@@ -160,7 +166,7 @@ void link_rewiring1(int **adj, int *deg, int N) {
     n_candidate1 = deg[node1], n_candidate2 = deg[node2];
     candidate1 = (int *)calloc(n_candidate1, sizeof(int));
     candidate2 = (int *)calloc(n_candidate2, sizeof(int));
-  
+
     for (i = 0; i < deg[node1]; i++) {
         candidate1[i] = adj[node1][i];
         for (j = 0; j < deg[node2]; j++) {
@@ -172,7 +178,7 @@ void link_rewiring1(int **adj, int *deg, int N) {
     }
     if (n_candidate1 == 0) {
         free(candidate1), free(candidate2);
-        return -1; 
+        return -1;
     } else {
         final1 = (int *)calloc(n_candidate1, sizeof(int));
         for (i = 0, j = 0; i < deg[node1]; i++) {
@@ -194,7 +200,7 @@ void link_rewiring1(int **adj, int *deg, int N) {
     }
     if (n_candidate2 == 0) {
         free(candidate1), free(candidate2);
-        return -1; 
+        return -1;
     } else {
         final2 = (int *)calloc(n_candidate2, sizeof(int));
         for (i = 0, j = 0; i < deg[node2]; i++) {
@@ -204,7 +210,7 @@ void link_rewiring1(int **adj, int *deg, int N) {
             }
         }
     }
-    
+
     /* choose the final friends to swap */
     rnd = genrand64_real2();
     friend1 = final1[(int) (rnd * n_candidate1)];
@@ -237,8 +243,8 @@ void link_rewiring1(int **adj, int *deg, int N) {
             adj[friend2][i] = node1;
             break;
         }
-    } 
-    
+    }
+
     free(candidate1), free(candidate2);
     free(final1), free(final2);
 }
@@ -246,13 +252,13 @@ void link_rewiring1(int **adj, int *deg, int N) {
 /* Rewiring Links without preserving degree distribution */
 /* Sometimes, this makes zero-degree nodes */
 int link_rewiring2(int **adj, int *deg, int N) {
-    int *copy_adj, node1, node2, friend, 
+    int *copy_adj, node1, node2, friend,
     i, j, k, idx, check, n_trial;
 
     node1 = (int) (genrand64_real2() * N);
     friend = adj[node1][(int) (genrand64_real2() * deg[node1])];
 
-    
+
     n_trial = 0;
     while (1) {
         printf("n_trial = %d\n", n_trial);
@@ -302,7 +308,7 @@ int link_rewiring2(int **adj, int *deg, int N) {
 /* Rewiring Links without preserving degree distribution */
 /* No zero-degree nodes are created here */
 int link_rewiring3(int **adj, int *deg, int N) {
-    int *copy_adj, node1, node2, friend, 
+    int *copy_adj, node1, node2, friend,
     i, j, k, idx, check, n_trial;
 
     while (1) {
@@ -312,7 +318,7 @@ int link_rewiring3(int **adj, int *deg, int N) {
             break;
         }
     }
-    
+
     n_trial = 0;
     while (1) {
         printf("n_trial = %d\n", n_trial);
@@ -359,7 +365,7 @@ int link_rewiring3(int **adj, int *deg, int N) {
 }
 /* LinkRewiring1 + gives swap information */
 int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
-    int *candidate1, *candidate2, *final1, *final2, node1, node2, 
+    int *candidate1, *candidate2, *final1, *final2, node1, node2,
     friend1, friend2, i, j, n_candidate1, n_candidate2;
     double rnd;
 
@@ -376,7 +382,7 @@ int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
     n_candidate1 = deg[node1], n_candidate2 = deg[node2];
     candidate1 = (int *)calloc(n_candidate1, sizeof(int));
     candidate2 = (int *)calloc(n_candidate2, sizeof(int));
-  
+
     for (i = 0; i < deg[node1]; i++) {
         candidate1[i] = adj[node1][i];
         for (j = 0; j < deg[node2]; j++) {
@@ -388,7 +394,7 @@ int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
     }
     if (n_candidate1 == 0) {
         free(candidate1), free(candidate2);
-        return -1; 
+        return -1;
     } else {
         final1 = (int *)calloc(n_candidate1, sizeof(int));
         for (i = 0, j = 0; i < deg[node1]; i++) {
@@ -410,7 +416,7 @@ int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
     }
     if (n_candidate2 == 0) {
         free(candidate1), free(candidate2);
-        return -1; 
+        return -1;
     } else {
         final2 = (int *)calloc(n_candidate2, sizeof(int));
         for (i = 0, j = 0; i < deg[node2]; i++) {
@@ -420,7 +426,7 @@ int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
             }
         }
     }
-    
+
     /* choose the final friends to swap */
     friend1 = final1[(int) (genrand64_real2() * n_candidate1)];
     friend2 = final2[(int) (genrand64_real2() * n_candidate2)];
@@ -455,7 +461,7 @@ int link_rewiring1_plus(int **adj, int **change, int *deg, int N) {
     change[0] = (int *)calloc(4, sizeof(int));
     change[0][0] = node1, change[0][1] = node2;
     change[0][2] = friend1, change[0][3] = friend2;
-    
+
     free(candidate1), free(candidate2);
     free(final1), free(final2);
     return 0;
@@ -521,9 +527,9 @@ int check_symmetry(int **adj, int *deg, int nw_size) {
 void remove_self_loop(int **adj, int *deg, int nw_size) {
     int **new_adj, *new_deg, *table, i, j, count;
     new_adj = (int **)calloc(nw_size, sizeof(int *));
-    new_deg = (int *)calloc(nw_size, sizeof(int)); 
+    new_deg = (int *)calloc(nw_size, sizeof(int));
     table = (int *)calloc(nw_size, sizeof(int));
-    
+
     for (i = 0; i < nw_size; i++) {
         for (j = 0; j < deg[i]; j++) {
             if (adj[i][j] == i) {adj[i][j] = -1;}
@@ -549,7 +555,7 @@ void remove_self_loop(int **adj, int *deg, int nw_size) {
         for (j = 0; j < new_deg[i]; j++) {
             new_adj[i][j] = table[new_adj[i][j]];
         }
-    } 
+    }
 
     init_1d_int(deg, nw_size, 0);
 
@@ -561,20 +567,20 @@ void remove_self_loop(int **adj, int *deg, int nw_size) {
         } else {
             for (j = 0; j < new_deg[i]; j++) {
                 adj[i - count][j] = new_adj[i][j];
-            } 
-        } 
+            }
+        }
     }
 
-    for (i = 0; i < nw_size; i++) {free(new_adj[i]);} 
-    free(new_deg); 
+    for (i = 0; i < nw_size; i++) {free(new_adj[i]);}
+    free(new_deg);
     free(new_adj);
-    free(table); 
+    free(table);
 }
 
 void remove_multi_loop(int **adj, int *deg, int nw_size) {
     int  **new_adj, *new_deg, *table, i, j, k, count;
     new_adj = (int **)calloc(nw_size, sizeof(int *));
-    new_deg = (int *)calloc(nw_size, sizeof(int)); 
+    new_deg = (int *)calloc(nw_size, sizeof(int));
     table = (int *)calloc(nw_size, sizeof(int));
 
     for (i = 0; i < nw_size; i++) {
@@ -597,7 +603,7 @@ void remove_multi_loop(int **adj, int *deg, int nw_size) {
                 new_adj[i][new_deg[i] - 1] = adj[i][j];
             }
         }
-    } 
+    }
 
     // give good index
     for (count = 0, i = 0; i < nw_size; i++) {
@@ -613,7 +619,7 @@ void remove_multi_loop(int **adj, int *deg, int nw_size) {
         for (j = 0; j < new_deg[i]; j++) {
             new_adj[i][j] = table[new_adj[i][j]];
         }
-    } 
+    }
 
     init_1d_int(deg, nw_size, 0);
     copy_1d_int2(deg, new_deg, nw_size, 0);
@@ -624,14 +630,14 @@ void remove_multi_loop(int **adj, int *deg, int nw_size) {
         } else {
             for (j = 0; j < new_deg[i]; j++) {
                 adj[i - count][j] = new_adj[i][j];
-            } 
-        } 
+            }
+        }
     }
 
-    for (i = 0; i < nw_size; i++) {free(new_adj[i]);} 
-    free(new_deg); 
+    for (i = 0; i < nw_size; i++) {free(new_adj[i]);}
+    free(new_deg);
     free(new_adj);
-    free(table);  
+    free(table);
 }
 
 // unweighted graph with self-loops or muli-links -> simple graph
@@ -647,5 +653,5 @@ void make_simple_graph1(int **adj, int *deg, int nw_size) {
 
 
 //#############################################################################
-// K-core decomposition 
+// K-core decomposition
 //#############################################################################
