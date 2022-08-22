@@ -55,9 +55,32 @@ int get_adj_list(char *fn, int **adj, int *deg, int N) {
 }
 
 
-void save_nw_data(char *fn, int **adj, int *deg, int N) {
+// int save_adj_data(char *fn, int **adj, int *deg, int N) {
+//     FILE *fp;
+//     int i, j;
+
+//     fp = fopen(fn, "w");
+
+//     if (fp == NULL) {
+//         printf("!!! FAIL TO MAKE YOUR FILE !!! \n");
+//         printf("!!! CHECK YOUR FILE AGAIN  !!! \n");
+//         return -1;
+//     } else {
+//         for (i = 0; i < N; i++) {
+//             for (j = 0; j < deg[i]; j++) {
+//                 fprintf(fp, "%d;%d\n", i, adj[i][j]);
+//             }
+//         }
+//     }
+//     fclose(fp);
+
+//     return 0;
+// }
+
+// save degree information of a given network
+int save_pk_data(char *fn, int *deg, int N) {
     FILE *fp;
-    int i, j;
+    int i;
 
     fp = fopen(fn, "w");
 
@@ -67,10 +90,52 @@ void save_nw_data(char *fn, int **adj, int *deg, int N) {
         return -1;
     } else {
         for (i = 0; i < N; i++) {
-            for (j = 0; j < deg[i]; j++) {
-                fprintf(fp, "%d;%d\n", i, adj[i][j]);
-            }
+            fprintf(fp, "%d\n", deg[i]);
         }
     }
     fclose(fp);
+    return 0;
 }
+
+// save degree information of a given network
+int save_deg_data(char *fn, int *deg, int N) {
+    FILE *fp;
+    int i;
+
+    fp = fopen(fn, "w");
+
+    if (fp == NULL) {
+        printf("!!! FAIL TO MAKE YOUR FILE !!! \n");
+        printf("!!! CHECK YOUR FILE AGAIN  !!! \n");
+        return -1;
+    } else {
+        for (i = 0; i < N; i++) {
+            fprintf(fp, "%d\n", deg[i]);
+        }
+    }
+    fclose(fp);
+    return 0;
+}
+
+// save degree information of an ensemble of networks
+int save_multiple_deg_data(char *fn, int *deg, int N) {
+    FILE *fp;
+    int i;
+
+    fp = fopen(fn, "a"); // !!! this is the only difference !!!
+
+    if (fp == NULL) {
+        printf("!!! FAIL TO MAKE YOUR FILE !!! \n");
+        printf("!!! CHECK YOUR FILE AGAIN  !!! \n");
+        return -1;
+    } else {
+        for (i = 0; i < N; i++) {
+            fprintf(fp, "%d\n", deg[i]);
+        }
+    }
+    fclose(fp);
+    return 0;
+}
+
+
+

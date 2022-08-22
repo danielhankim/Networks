@@ -146,7 +146,7 @@ int extract_lc(int **adj, int *deg, int **new_adj, int *new_deg, int nw_size) {
 // Rewiring method
 //#############################################################################
 /* Rewiring Links preserving degree distribution */
-void link_rewiring1(int **adj, int *deg, int N) {
+int link_rewiring1(int **adj, int *deg, int N) {
     int *candidate1, *candidate2, *final1, *final2, node1, node2,
     friend1, friend2, i, j, n_candidate1, n_candidate2;
     double rnd;
@@ -247,6 +247,8 @@ void link_rewiring1(int **adj, int *deg, int N) {
 
     free(candidate1), free(candidate2);
     free(final1), free(final2);
+
+    return 0;
 }
 
 /* Rewiring Links without preserving degree distribution */

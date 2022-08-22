@@ -109,7 +109,7 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
             n_rich += 1;
             rich = (int *)realloc(rich, n_rich * intsz);
             rich[n_rich - 1] = i;
-        } else {
+        } else if(prob[i] <= prob_avg){
             n_poor += 1;
             poor = (int *)realloc(poor, n_poor * intsz);
             poor[n_poor - 1] = i;
@@ -134,39 +134,38 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
         }
 
         if (n_rich == 0 || n_poor == 0) {break;}
+    }
 
-        n_tot_link = (int) ((double) nw_size * k_mean / 2.);
-        n_link = 0;
+    n_tot_link = (int) ((double) nw_size * k_mean / 2.);
+    n_link = 0;
 
-        while (1) {
-            rnd = genrand64_real2();
-            tmp = (int) (nw_size * rnd);
-            rnd = genrand64_real2();
-            if (prob[tmp] > rnd) {node1 = tmp;}
-            else {node1 = id[tmp];}
-            rnd = genrand64_real2();
-            tmp = (int) (nw_size * rnd);
-            rnd = genrand64_real2();
-            if (prob[tmp] > rnd) {node2 = tmp;}
-            else {node2 = id[tmp];}
+    while (1) {
+        rnd = genrand64_real2();
+        tmp = (int) (nw_size * rnd);
+        rnd = genrand64_real2();
+        if (prob[tmp] > rnd) {node1 = tmp;}
+        else {node1 = id[tmp];}
+        rnd = genrand64_real2();
+        tmp = (int) (nw_size * rnd);
+        rnd = genrand64_real2();
+        if (prob[tmp] > rnd) {node2 = tmp;}
+        else {node2 = id[tmp];}
 
-            if (node1 != node2) {
-                for (ticket = 0, i = 0; i < deg[node1]; i++) {
-                    if (node2 == adj[node1][i]) {
-                        ticket = 1;
-                        break;
-                    }
+        if (node1 != node2) {
+            for (ticket = 0, i = 0; i < deg[node1]; i++) {
+                if (node2 == adj[node1][i]) {
+                    ticket = 1;
+                    break;
                 }
-                if (ticket == 0) {
-                    deg[node1] += 1;
-                    deg[node2] += 1;
-                    adj[node1] = (int *)realloc(adj[node1], intsz * deg[node1]);
-                    adj[node2] = (int *)realloc(adj[node2], intsz * deg[node2]);
-                    adj[node1][deg[node1] - 1] = node2;
-                    adj[node2][deg[node2] - 1] = node1;
-                    n_link += 1;
-                }
-
+            }
+            if (ticket == 0) {
+                deg[node1] += 1;
+                deg[node2] += 1;
+                adj[node1] = (int *)realloc(adj[node1], intsz * deg[node1]);
+                adj[node2] = (int *)realloc(adj[node2], intsz * deg[node2]);
+                adj[node1][deg[node1] - 1] = node2;
+                adj[node2][deg[node2] - 1] = node1;
+                n_link += 1;
             }
         }
         if (n_link == n_tot_link) {break;}
@@ -175,11 +174,12 @@ void make_SNU_ScaleFree(int **adj, int *deg, int nw_size, double k_mean, double 
     free(prob); free(id);
 }
 
-void make_BarabasiAlbert(int **adj, int *deg, int nw_size, int k_mean){
+// This needs modification... something is wrong with it
+void make_BarabasiAlbert(int **adj, int *deg, int nw_size, double k_mean){
     int *node_list, n, i, j, k_tot, n_new, count, done, check;
     double *pref_prob, p_sum, rnd;
 
-    n = k_mean + 1; // # of current nodes
+    n = (int) k_mean + 1; // # of current nodes
     n_new = (int) (k_mean / 2); // # of new attachment
     node_list = (int *)calloc(n_new, sizeof(int)); // list of attaching node for new comer
     pref_prob = (double *)calloc(n, sizeof(double)); // pref. att. prob.
@@ -187,7 +187,7 @@ void make_BarabasiAlbert(int **adj, int *deg, int nw_size, int k_mean){
     make_CGraph(adj, deg, n);
     init_1d_double(pref_prob, n, 1. / n);
 
-    for (n; n < nw_size; n++) {
+    for (n = n; n < nw_size; n++) {
         // reset pref. att. prob.
 
         for (p_sum = 0., i = 0; i < n; i++) {

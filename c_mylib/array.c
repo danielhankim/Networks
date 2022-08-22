@@ -39,7 +39,9 @@ void init_2d_int2(int **ary, int max1, int max2, int init_val) {
     int i;
     for (i = 0; i < max1; i++) {
         ary[i] = (int *)calloc(max2, sizeof(int));
-        init_1d_int(ary[i], max2, init_val);
+        if (init_val != 0) {
+            init_1d_int(ary[i], max2, init_val);
+        }
     }
 }
 
