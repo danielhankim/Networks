@@ -185,48 +185,57 @@ void make_BarabasiAlbert(int **adj, int *deg, int nw_size, double k_mean){
     pref_prob = (double *)calloc(n, sizeof(double)); // pref. att. prob.
 
     make_CGraph(adj, deg, n);
+    init_1d_int(deg, n, (int) k_mean);
     init_1d_double(pref_prob, n, 1. / n);
-
-    for (n = n; n < nw_size; n++) {
+    
+   
+    for (; n < nw_size; n++) {
         // reset pref. att. prob.
-
+        if (n%2000 == 0) {
+            printf("n = %d\n", n);
+        }
         for (p_sum = 0., i = 0; i < n; i++) {
             k_tot = sum_1d_int(deg, n);
-            p_sum += (double) (deg[i] / k_tot);
+       
+            p_sum += (double) deg[i] / k_tot;
             pref_prob[i] = p_sum;
+            // printf("pref_prob[%d] = %f\n", i, pref_prob[i]);
         }
+
         done = 0;
+        init_1d_int(node_list, n_new, -1);
+
         while (done != 1) {
-            count = 0;
-            while (count < n_new) {
+
+            for (i = 0; i < n_new; i++) {
                 rnd = genrand64_real2();
-                for (i = 0; i < n; i++) {
-                    if (rnd < pref_prob[i]) {
-                        node_list[count] = i;
-                        count += 1;
+                for (j = 0; j < n; j++) {
+                    if (rnd < pref_prob[j]) {
+                        node_list[i] = j;
                         break;
                     }
                 }
             }
-            check = 0;
-            for (i = 0; i < n_new - 1; i++) {
+
+            for (check = 0, i = 0; i < n_new - 1; i++) {
                 for (j = i + 1; j < n_new; j++) {
                     if (node_list[i] == node_list[j]) {
                         check = 1;
+                        break;
                     }
                 }
             }
-            if (check != 0) {break;}
-
-            deg[n] = n_new;
-            adj[n] = (int *)calloc(n_new, sizeof(int));
-            pref_prob = (double *)realloc(pref_prob, n * sizeof(double));
-            for (i = 0; i < n_new; i++) {
-                deg[node_list[i]] += 1;
-                adj[node_list[i]][deg[node_list[i]] - 1] = n;
-                adj[n][i] = node_list[i];
+            if (check == 0) {
+                deg[n] = n_new;
+                adj[n] = (int *)calloc(n_new, sizeof(int));
+                pref_prob = (double *)realloc(pref_prob, n * sizeof(double));
+                for (i = 0; i < n_new; i++) {
+                    deg[node_list[i]] += 1;
+                    adj[node_list[i]][deg[node_list[i]] - 1] = n;
+                    adj[n][i] = node_list[i];
+                }
+                done = 1;
             }
-            done = 1;
         }
     }
     free(node_list); free(pref_prob);
